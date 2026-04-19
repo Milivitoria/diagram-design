@@ -297,6 +297,7 @@
     const MIN_EXPORT_HEIGHT = 520;
     const PNG_MIN_WIDTH = 1200;
     const PNG_MIN_HEIGHT = 700;
+    const SAME_CENTER_OFFSET = 1;
     // Keep enough undo depth for regular editing sessions without unbounded memory growth.
     const MAX_HISTORY_LENGTH = 120;
 
@@ -632,8 +633,8 @@
         const fromC = nodeCenter(from);
         const toC = nodeCenter(to);
         const sameCenter = fromC.x === toC.x && fromC.y === toC.y;
-        const fromTarget = sameCenter ? { x: toC.x + 1, y: toC.y } : toC;
-        const toTarget = sameCenter ? { x: fromC.x - 1, y: fromC.y } : fromC;
+        const fromTarget = sameCenter ? { x: toC.x + SAME_CENTER_OFFSET, y: toC.y } : toC;
+        const toTarget = sameCenter ? { x: fromC.x - SAME_CENTER_OFFSET, y: fromC.y } : fromC;
         const fromP = boundaryPoint(from, fromTarget);
         const toP = boundaryPoint(to, toTarget);
         const style = edgeStyle(edge);
