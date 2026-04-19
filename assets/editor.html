@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Diagram Design · Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -340,15 +342,15 @@
 
     function uid(prefix) {
       idCounter += 1;
-      return `${prefix}-${Date.now()}-${idCounter}`;
+      return `${prefix}-${idCounter}`;
     }
 
     function syncIdCounterFromState() {
       let maxCounter = idCounter;
       const allIds = [...state.nodes.map(n => n.id), ...state.edges.map(e => e.id)];
       for (const id of allIds) {
-        const tail = id.split('-').pop();
-        const n = Number.parseInt(tail, 10);
+        const match = id.match(/-(\d+)$/);
+        const n = match ? Number.parseInt(match[1], 10) : Number.NaN;
         if (Number.isFinite(n)) maxCounter = Math.max(maxCounter, n);
       }
       idCounter = maxCounter;
@@ -904,8 +906,13 @@
         setStatus('popup blocked');
         return;
       }
-      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{margin:0;padding:12mm;background:#fff;font-family:Arial,sans-serif;}h1{font-size:12px;margin:0 0 8mm 0;font-weight:600;}${fitStyle}</style></head><body><h1>${title}</h1><img src="${imgData}" alt="diagram"/><script>window.onload=()=>window.print();<\/script></body></html>`);
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Diagram PDF export</title><style>body{margin:0;padding:12mm;background:#fff;font-family:Arial,sans-serif;}h1{font-size:12px;margin:0 0 8mm 0;font-weight:600;}${fitStyle}</style></head><body><h1 id="pdf-title"></h1><img id="pdf-image" alt="diagram"/></body></html>`);
       win.document.close();
+      const titleEl = win.document.getElementById('pdf-title');
+      const imageEl = win.document.getElementById('pdf-image');
+      if (titleEl) titleEl.textContent = title;
+      if (imageEl) imageEl.setAttribute('src', imgData);
+      win.onload = () => win.print();
       setStatus(mode === 'viewport' ? 'pdf viewport ready to print' : 'pdf a4 ready to print');
     }
 
