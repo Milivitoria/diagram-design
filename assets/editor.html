@@ -1032,9 +1032,9 @@
 
     window.addEventListener('keydown', (event) => {
       const target = event.target;
-      const typing = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      const isInputFocused = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
-      if (event.code === 'Space' && !typing) {
+      if (event.code === 'Space' && !isInputFocused) {
         isSpacePressed = true;
       }
 
@@ -1053,7 +1053,7 @@
         return;
       }
 
-      if (!typing && (event.key === 'Delete' || event.key === 'Backspace')) {
+      if (!isInputFocused && (event.key === 'Delete' || event.key === 'Backspace')) {
         if (state.selectedNodeId) {
           event.preventDefault();
           removeNode(state.selectedNodeId);
