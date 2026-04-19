@@ -289,6 +289,7 @@
   <script>
     const STORAGE_KEY = 'diagram-design.editor.v1';
     const MIN_SIZE = 56;
+    const MAX_HISTORY_LENGTH = 120;
 
     const workspace = document.getElementById('workspace');
     const camera = document.getElementById('camera');
@@ -326,7 +327,7 @@
     const future = [];
 
     let saveTimer = null;
-    let idCounter = 1;
+    let idCounter = 0;
     let isSpacePressed = false;
 
     let interaction = null;
@@ -424,7 +425,7 @@
     function pushHistory(beforeSnapshot) {
       if (!beforeSnapshot) return;
       history.push(beforeSnapshot);
-      if (history.length > 120) history.shift();
+      if (history.length > MAX_HISTORY_LENGTH) history.shift();
       future.length = 0;
       syncButtons();
     }
@@ -876,7 +877,10 @@
         : '@page{size:A4 portrait;margin:10mm;} img{width:100%;height:auto;display:block;}';
 
       const win = window.open('', '_blank', 'noopener');
-      if (!win) return;
+      if (!win) {
+        setStatus('popup blocked');
+        return;
+      }
       win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{margin:0;padding:12mm;background:#fff;font-family:Arial,sans-serif;}h1{font-size:12px;margin:0 0 8mm 0;font-weight:600;}${fitStyle}</style></head><body><h1>${title}</h1><img src="${imgData}" alt="diagram"/><script>window.onload=()=>window.print();<\/script></body></html>`);
       win.document.close();
       setStatus(mode === 'viewport' ? 'pdf viewport ready to print' : 'pdf a4 ready to print');
