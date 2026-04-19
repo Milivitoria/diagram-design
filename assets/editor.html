@@ -289,6 +289,12 @@
   <script>
     const STORAGE_KEY = 'diagram-design.editor.v1';
     const MIN_SIZE = 56;
+    const EXPORT_PADDING = 80;
+    const MIN_EXPORT_WIDTH = 800;
+    const MIN_EXPORT_HEIGHT = 520;
+    const PNG_MIN_WIDTH = 1200;
+    const PNG_MIN_HEIGHT = 700;
+    // Keep enough undo depth for regular editing sessions without unbounded memory growth.
     const MAX_HISTORY_LENGTH = 120;
 
     const workspace = document.getElementById('workspace');
@@ -335,6 +341,17 @@
     function uid(prefix) {
       idCounter += 1;
       return `${prefix}-${Date.now()}-${idCounter}`;
+    }
+
+    function syncIdCounterFromState() {
+      let maxCounter = idCounter;
+      const allIds = [...state.nodes.map(n => n.id), ...state.edges.map(e => e.id)];
+      for (const id of allIds) {
+        const tail = id.split('-').pop();
+        const n = Number.parseInt(tail, 10);
+        if (Number.isFinite(n)) maxCounter = Math.max(maxCounter, n);
+      }
+      idCounter = maxCounter;
     }
 
     function nodeCenter(node) {
@@ -418,6 +435,7 @@
       state.edges = data.edges || [];
       state.viewport = data.viewport || { x: 220, y: 120, zoom: 1 };
       state.selectedNodeId = data.selectedNodeId || null;
+      syncIdCounterFromState();
       typeSelect.value = state.type;
       render();
     }
@@ -794,7 +812,12 @@
         maxX = Math.max(maxX, n.x + n.w);
         maxY = Math.max(maxY, n.y + n.h);
       }
-      return { x: minX - 80, y: minY - 80, w: Math.max(800, maxX - minX + 160), h: Math.max(520, maxY - minY + 180) };
+      return {
+        x: minX - EXPORT_PADDING,
+        y: minY - EXPORT_PADDING,
+        w: Math.max(MIN_EXPORT_WIDTH, maxX - minX + EXPORT_PADDING * 2),
+        h: Math.max(MIN_EXPORT_HEIGHT, maxY - minY + EXPORT_PADDING * 2 + 20)
+      };
     }
 
     function sceneMarkupForExport() {
@@ -835,8 +858,8 @@
     async function exportPng(mode = 'full') {
       const svg = buildSvg(mode);
       const vb = exportViewBox(mode);
-      const width = Math.max(1200, Math.round(vb.w));
-      const height = Math.max(700, Math.round(vb.h));
+      const width = Math.max(PNG_MIN_WIDTH, Math.round(vb.w));
+      const height = Math.max(PNG_MIN_HEIGHT, Math.round(vb.h));
       const data = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
       const img = new Image();
       await new Promise((resolve, reject) => {
