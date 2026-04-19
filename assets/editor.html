@@ -239,13 +239,13 @@
           <pattern id="editor-dots" width="22" height="22" patternUnits="userSpaceOnUse">
             <circle cx="1" cy="1" r="0.9" fill="rgba(11,13,11,0.10)"/>
           </pattern>
-          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
             <polygon points="0 0, 8 3, 0 6" fill="#52534e" />
           </marker>
-          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
             <polygon points="0 0, 8 3, 0 6" fill="#f7591f" />
           </marker>
-          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
             <polygon points="0 0, 8 3, 0 6" fill="#1a70c7" />
           </marker>
         </defs>
@@ -297,6 +297,8 @@
     const MIN_EXPORT_HEIGHT = 520;
     const PNG_MIN_WIDTH = 1200;
     const PNG_MIN_HEIGHT = 700;
+    const GEOMETRY_EPSILON = 0.001;
+    const OVERLAPPING_NODES_OFFSET = 1;
     // Keep enough undo depth for regular editing sessions without unbounded memory growth.
     const MAX_HISTORY_LENGTH = 120;
 
@@ -359,6 +361,36 @@
 
     function nodeCenter(node) {
       return { x: node.x + node.w / 2, y: node.y + node.h / 2 };
+    }
+
+    function boundaryPoint(node, toward) {
+      const c = nodeCenter(node);
+      const dx = toward.x - c.x;
+      const dy = toward.y - c.y;
+      const halfW = node.w / 2;
+      const halfH = node.h / 2;
+      if (halfW <= GEOMETRY_EPSILON || halfH <= GEOMETRY_EPSILON) return c;
+
+      if (dx === 0 && dy === 0) return c;
+
+      if (node.kind === 'oval') {
+        const denom = Math.hypot(dx / halfW, dy / halfH);
+        if (denom <= GEOMETRY_EPSILON) return c;
+        const t = 1 / denom;
+        return { x: c.x + dx * t, y: c.y + dy * t };
+      }
+
+      if (node.kind === 'diamond') {
+        const denom = (Math.abs(dx) / halfW) + (Math.abs(dy) / halfH);
+        if (denom <= GEOMETRY_EPSILON) return c;
+        const t = 1 / denom;
+        return { x: c.x + dx * t, y: c.y + dy * t };
+      }
+
+      const denom = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
+      if (denom <= GEOMETRY_EPSILON) return c;
+      const t = 1 / denom;
+      return { x: c.x + dx * t, y: c.y + dy * t };
     }
 
     function formatType(type) {
@@ -601,13 +633,19 @@
 
         const fromC = nodeCenter(from);
         const toC = nodeCenter(to);
+        const sameCenter = fromC.x === toC.x && fromC.y === toC.y;
+        // Bias horizontally so overlapping centers still produce a visible edge segment.
+        const fromTarget = sameCenter ? { x: toC.x + OVERLAPPING_NODES_OFFSET, y: toC.y } : toC;
+        const toTarget = sameCenter ? { x: fromC.x - OVERLAPPING_NODES_OFFSET, y: fromC.y } : fromC;
+        const fromP = boundaryPoint(from, fromTarget);
+        const toP = boundaryPoint(to, toTarget);
         const style = edgeStyle(edge);
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        line.setAttribute('x1', fromC.x);
-        line.setAttribute('y1', fromC.y);
-        line.setAttribute('x2', toC.x);
-        line.setAttribute('y2', toC.y);
+        line.setAttribute('x1', fromP.x);
+        line.setAttribute('y1', fromP.y);
+        line.setAttribute('x2', toP.x);
+        line.setAttribute('y2', toP.y);
         line.setAttribute('stroke', style.stroke);
         line.setAttribute('stroke-width', style.width);
         if (style.dash) line.setAttribute('stroke-dasharray', style.dash);
@@ -615,8 +653,8 @@
         scene.appendChild(line);
 
         if (edge.label) {
-          const mx = (fromC.x + toC.x) / 2;
-          const my = (fromC.y + toC.y) / 2;
+          const mx = (fromP.x + toP.x) / 2;
+          const my = (fromP.y + toP.y) / 2;
 
           const mask = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
           mask.setAttribute('x', mx - 36);
@@ -847,7 +885,7 @@
     function buildSvg(mode) {
       const vb = exportViewBox(mode);
       const sceneMarkup = sceneMarkupForExport();
-      return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}">\n  <defs>\n    <pattern id="editor-dots" width="22" height="22" patternUnits="userSpaceOnUse">\n      <circle cx="1" cy="1" r="0.9" fill="rgba(11,13,11,0.10)"/>\n    </pattern>\n    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#52534e"/>\n    </marker>\n    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#f7591f"/>\n    </marker>\n    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#1a70c7"/>\n    </marker>\n  </defs>\n  <rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="#f5f4ed"/>\n  <rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="url(#editor-dots)" opacity="0.55"/>\n  ${sceneMarkup}\n</svg>`;
+      return `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.x} ${vb.y} ${vb.w} ${vb.h}">\n  <defs>\n    <pattern id="editor-dots" width="22" height="22" patternUnits="userSpaceOnUse">\n      <circle cx="1" cy="1" r="0.9" fill="rgba(11,13,11,0.10)"/>\n    </pattern>\n    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#52534e"/>\n    </marker>\n    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#f7591f"/>\n    </marker>\n    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">\n      <polygon points="0 0, 8 3, 0 6" fill="#1a70c7"/>\n    </marker>\n  </defs>\n  <rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="#f5f4ed"/>\n  <rect x="${vb.x}" y="${vb.y}" width="${vb.w}" height="${vb.h}" fill="url(#editor-dots)" opacity="0.55"/>\n  ${sceneMarkup}\n</svg>`;
     }
 
     function download(filename, content, mime = 'text/plain') {
