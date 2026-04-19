@@ -369,7 +369,7 @@
       const dy = toward.y - c.y;
       const halfW = node.w / 2;
       const halfH = node.h / 2;
-      if (halfW < GEOMETRY_EPSILON || halfH < GEOMETRY_EPSILON) return c;
+      if (halfW <= GEOMETRY_EPSILON || halfH <= GEOMETRY_EPSILON) return c;
 
       if (dx === 0 && dy === 0) return c;
 
