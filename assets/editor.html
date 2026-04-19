@@ -292,6 +292,7 @@
     const STORAGE_KEY = 'diagram-design.editor.v1';
     const MIN_SIZE = 56;
     const EXPORT_PADDING = 80;
+    const EXPORT_VERTICAL_MARGIN = 20;
     const MIN_EXPORT_WIDTH = 800;
     const MIN_EXPORT_HEIGHT = 520;
     const PNG_MIN_WIDTH = 1200;
@@ -350,8 +351,8 @@
       const allIds = [...state.nodes.map(n => n.id), ...state.edges.map(e => e.id)];
       for (const id of allIds) {
         const match = id.match(/-(\d+)$/);
-        const n = match ? Number.parseInt(match[1], 10) : Number.NaN;
-        if (Number.isFinite(n)) maxCounter = Math.max(maxCounter, n);
+        const parsedId = match ? Number.parseInt(match[1], 10) : Number.NaN;
+        if (Number.isFinite(parsedId)) maxCounter = Math.max(maxCounter, parsedId);
       }
       idCounter = maxCounter;
     }
@@ -785,6 +786,8 @@
         before: snapshot(),
         changed: false,
         startWorld: world,
+        lastClientX: event.clientX,
+        lastClientY: event.clientY,
         nodeId: node?.id || null,
         nodeStart: node ? { x: node.x, y: node.y, w: node.w, h: node.h } : null
       };
@@ -818,7 +821,7 @@
         x: minX - EXPORT_PADDING,
         y: minY - EXPORT_PADDING,
         w: Math.max(MIN_EXPORT_WIDTH, maxX - minX + EXPORT_PADDING * 2),
-        h: Math.max(MIN_EXPORT_HEIGHT, maxY - minY + EXPORT_PADDING * 2 + 20)
+        h: Math.max(MIN_EXPORT_HEIGHT, maxY - minY + EXPORT_PADDING * 2 + EXPORT_VERTICAL_MARGIN)
       };
     }
 
@@ -951,16 +954,16 @@
       const world = toWorld(event.clientX, event.clientY);
 
       if (interaction.type === 'pan') {
-        const dx = event.clientX - (workspace._lastClientX ?? event.clientX);
-        const dy = event.clientY - (workspace._lastClientY ?? event.clientY);
+        const dx = event.clientX - interaction.lastClientX;
+        const dy = event.clientY - interaction.lastClientY;
         if (dx || dy) {
           state.viewport.x += dx;
           state.viewport.y += dy;
           interaction.changed = true;
           render();
         }
-        workspace._lastClientX = event.clientX;
-        workspace._lastClientY = event.clientY;
+        interaction.lastClientX = event.clientX;
+        interaction.lastClientY = event.clientY;
         return;
       }
 
@@ -989,8 +992,6 @@
     workspace.addEventListener('pointerup', (event) => {
       if (interaction?.pointerId !== event.pointerId) return;
       workspace.releasePointerCapture(event.pointerId);
-      workspace._lastClientX = null;
-      workspace._lastClientY = null;
       endInteraction();
     });
 
