@@ -41,6 +41,8 @@ All 13 diagrams ship in three variants: minimal light, minimal dark, and full-ed
 </table>
 
 **Browse the live gallery:** open [`assets/index.html`](assets/index.html) in your browser to flip through all 13 types with light / dark / full-editorial tabs.
+  
+**Interactive editor (MVP):** open [`assets/editor.html`](assets/editor.html) for a single-user infinite canvas with pan/zoom, node selection/drag/resize, undo/redo, local autosave, and export to SVG/PNG/HTML/PDF (viewport + A4 auto-fit).
 
 ---
 
@@ -56,6 +58,8 @@ ln -s ~/code/diagram-design ~/.claude/skills/diagram-design
 ```
 
 Restart Claude Code. The skill registers as `diagram-design` and activates whenever you ask Claude to make a diagram.
+
+For GitHub Pages deployment, this repository now includes `.github/workflows/gh-pages.yml` to publish the static site automatically on pushes to `main`/`master`.
 
 ---
 
