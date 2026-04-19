@@ -297,6 +297,7 @@
     const MIN_EXPORT_HEIGHT = 520;
     const PNG_MIN_WIDTH = 1200;
     const PNG_MIN_HEIGHT = 700;
+    const GEOMETRY_EPSILON = 0.001;
     const OVERLAPPING_NODES_OFFSET = 1;
     // Keep enough undo depth for regular editing sessions without unbounded memory growth.
     const MAX_HISTORY_LENGTH = 120;
@@ -368,26 +369,26 @@
       const dy = toward.y - c.y;
       const halfW = node.w / 2;
       const halfH = node.h / 2;
-      if (halfW < Number.EPSILON || halfH < Number.EPSILON) return c;
+      if (halfW < GEOMETRY_EPSILON || halfH < GEOMETRY_EPSILON) return c;
 
       if (dx === 0 && dy === 0) return c;
 
       if (node.kind === 'oval') {
         const denom = Math.hypot(dx / halfW, dy / halfH);
-        if (denom <= Number.EPSILON) return c;
+        if (denom <= GEOMETRY_EPSILON) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       if (node.kind === 'diamond') {
         const denom = (Math.abs(dx) / halfW) + (Math.abs(dy) / halfH);
-        if (denom <= Number.EPSILON) return c;
+        if (denom <= GEOMETRY_EPSILON) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       const denom = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
-      if (denom <= Number.EPSILON) return c;
+      if (denom <= GEOMETRY_EPSILON) return c;
       const t = 1 / denom;
       return { x: c.x + dx * t, y: c.y + dy * t };
     }
