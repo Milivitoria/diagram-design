@@ -282,7 +282,7 @@
       </div>
       <div class="separator"></div>
       <p class="hint"><span class="kbd">Ctrl/Cmd + Z</span> undo · <span class="kbd">Ctrl/Cmd + Shift + Z</span> redo · <span class="kbd">Delete</span> remove node</p>
-      <p class="hint">Exports: SVG, PNG, HTML e PDF em dois modos (viewport atual e A4 auto-fit).</p>
+      <p class="hint">Exports: SVG, PNG, HTML and PDF in two modes (current viewport and A4 auto-fit).</p>
     </aside>
   </main>
 
@@ -870,7 +870,7 @@
     function openPdfPrint(mode) {
       const svg = buildSvg(mode === 'viewport' ? 'viewport' : 'full');
       const imgData = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-      const title = mode === 'viewport' ? 'PDF · Viewport atual' : 'PDF · A4 auto-fit';
+      const title = mode === 'viewport' ? 'PDF · Current viewport' : 'PDF · A4 auto-fit';
       const fitStyle = mode === 'viewport'
         ? 'img{max-width:100%;height:auto;border:1px solid rgba(11,13,11,.15);} '
         : '@page{size:A4 portrait;margin:10mm;} img{width:100%;height:auto;display:block;}';
