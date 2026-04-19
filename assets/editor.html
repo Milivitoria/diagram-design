@@ -347,16 +347,16 @@
 
     function templateFor(type) {
       if (type === 'flowchart') {
-        const start = { id: uid('n'), x: 300, y: 80, w: 180, h: 64, label: 'New request', sub: 'input', kind: 'oval', accent: false };
+        const startNode = { id: uid('n'), x: 300, y: 80, w: 180, h: 64, label: 'New request', sub: 'input', kind: 'oval', accent: false };
         const step = { id: uid('n'), x: 300, y: 190, w: 180, h: 64, label: 'Validate data', sub: 'sync step', kind: 'rect', accent: false };
         const decision = { id: uid('n'), x: 300, y: 320, w: 180, h: 100, label: 'Is valid?', sub: 'yes / no', kind: 'diamond', accent: false };
         const done = { id: uid('n'), x: 90, y: 490, w: 180, h: 64, label: 'Reject', sub: 'error path', kind: 'oval', accent: false };
         const publish = { id: uid('n'), x: 510, y: 490, w: 180, h: 64, label: 'Publish', sub: 'happy path', kind: 'oval', accent: true };
 
         return {
-          nodes: [start, step, decision, done, publish],
+          nodes: [startNode, step, decision, done, publish],
           edges: [
-            { id: uid('e'), from: start.id, to: step.id, label: '', style: 'default' },
+            { id: uid('e'), from: startNode.id, to: step.id, label: '', style: 'default' },
             { id: uid('e'), from: step.id, to: decision.id, label: '', style: 'default' },
             { id: uid('e'), from: decision.id, to: done.id, label: 'NO', style: 'dashed' },
             { id: uid('e'), from: decision.id, to: publish.id, label: 'YES', style: 'accent' }
@@ -366,17 +366,17 @@
 
       if (type === 'sequence') {
         const reader = { id: uid('n'), x: 80, y: 70, w: 160, h: 64, label: 'Reader', sub: 'browser', kind: 'rect', accent: false };
-        const edge = { id: uid('n'), x: 340, y: 70, w: 170, h: 64, label: 'Cloudflare', sub: 'edge cache', kind: 'rect', accent: false };
+        const edgeNode = { id: uid('n'), x: 340, y: 70, w: 170, h: 64, label: 'Cloudflare', sub: 'edge cache', kind: 'rect', accent: false };
         const origin = { id: uid('n'), x: 620, y: 70, w: 170, h: 64, label: 'Astro Origin', sub: 'SSR + MDX', kind: 'rect', accent: true };
         const analytics = { id: uid('n'), x: 890, y: 70, w: 170, h: 64, label: 'Analytics', sub: 'async', kind: 'rect', accent: false };
 
         return {
-          nodes: [reader, edge, origin, analytics],
+          nodes: [reader, edgeNode, origin, analytics],
           edges: [
-            { id: uid('e'), from: reader.id, to: edge.id, label: 'GET /slug', style: 'link' },
-            { id: uid('e'), from: edge.id, to: origin.id, label: 'CACHE MISS', style: 'default' },
-            { id: uid('e'), from: origin.id, to: edge.id, label: '200 HTML', style: 'dashed' },
-            { id: uid('e'), from: edge.id, to: reader.id, label: 'EDGE-CACHED', style: 'accent' },
+            { id: uid('e'), from: reader.id, to: edgeNode.id, label: 'GET /slug', style: 'link' },
+            { id: uid('e'), from: edgeNode.id, to: origin.id, label: 'CACHE MISS', style: 'default' },
+            { id: uid('e'), from: origin.id, to: edgeNode.id, label: '200 HTML', style: 'dashed' },
+            { id: uid('e'), from: edgeNode.id, to: reader.id, label: 'EDGE-CACHED', style: 'accent' },
             { id: uid('e'), from: reader.id, to: analytics.id, label: 'BEACON', style: 'dashed' }
           ]
         };
