@@ -369,21 +369,24 @@
       const halfH = node.h / 2;
       if (halfW <= 0 || halfH <= 0) return c;
 
-      if (!dx && !dy) return c;
+      if (dx === 0 && dy === 0) return c;
 
       if (node.kind === 'oval') {
         const denom = Math.hypot(dx / halfW, dy / halfH);
+        if (denom <= Number.EPSILON) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       if (node.kind === 'diamond') {
         const denom = (Math.abs(dx) / halfW) + (Math.abs(dy) / halfH);
+        if (denom <= Number.EPSILON) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       const denom = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
+      if (denom <= Number.EPSILON) return c;
       const t = 1 / denom;
       return { x: c.x + dx * t, y: c.y + dy * t };
     }
