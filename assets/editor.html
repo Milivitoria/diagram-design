@@ -372,20 +372,17 @@
 
       if (node.kind === 'oval') {
         const denom = Math.hypot(dx / halfW, dy / halfH);
-        if (!denom) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       if (node.kind === 'diamond') {
         const denom = (Math.abs(dx) / halfW) + (Math.abs(dy) / halfH);
-        if (!denom) return c;
         const t = 1 / denom;
         return { x: c.x + dx * t, y: c.y + dy * t };
       }
 
       const denom = Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
-      if (!denom) return c;
       const t = 1 / denom;
       return { x: c.x + dx * t, y: c.y + dy * t };
     }
