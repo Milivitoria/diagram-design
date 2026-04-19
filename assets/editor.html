@@ -367,6 +367,7 @@
       const dy = toward.y - c.y;
       const halfW = node.w / 2;
       const halfH = node.h / 2;
+      if (halfW <= 0 || halfH <= 0) return c;
 
       if (!dx && !dy) return c;
 
@@ -627,8 +628,11 @@
 
         const fromC = nodeCenter(from);
         const toC = nodeCenter(to);
-        const fromP = boundaryPoint(from, toC);
-        const toP = boundaryPoint(to, fromC);
+        const sameCenter = fromC.x === toC.x && fromC.y === toC.y;
+        const fromTarget = sameCenter ? { x: toC.x + 1, y: toC.y } : toC;
+        const toTarget = sameCenter ? { x: fromC.x - 1, y: fromC.y } : fromC;
+        const fromP = boundaryPoint(from, fromTarget);
+        const toP = boundaryPoint(to, toTarget);
         const style = edgeStyle(edge);
 
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
